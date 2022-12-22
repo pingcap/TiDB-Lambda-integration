@@ -25,6 +25,10 @@ function initFastify() {
     logger: true,
   });
   fastify.register(commonRoutes);
+  fastify.register(getBookRoutes);
+  fastify.register(postBookRoutes);
+  fastify.register(updateBookRoutes);
+  fastify.register(deleteBookRoutes);
   return fastify;
 }
 

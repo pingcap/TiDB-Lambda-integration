@@ -1,0 +1,981 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "TiDB Cloud bookshop application template: Create a Secret Manager to manage database secrets, an API Gateway and a set of Lambda applications to perform CRUD operations on TiDB Cloud Cluster.",
+  "Parameters": {
+    "TiDBDatabase": {
+      "Description": "TiDB Cloud database name",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "Default": "test"
+    },
+    "TiDBUser": {
+      "NoEcho": "true",
+      "Description": "Username for TiDB Cloud database access",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "32"
+    },
+    "TiDBPassword": {
+      "NoEcho": "true",
+      "Description": "Password for TiDB Cloud database access",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+    },
+    "TiDBHost": {
+      "Description": "Host URL for TiDB Cloud database access",
+      "Default": "localhost",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "256"
+    },
+    "TiDBPort": {
+      "Description": "Port for TiDB Cloud database access",
+      "Default": "4000",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "8",
+      "AllowedPattern": "[0-9]*",
+      "ConstraintDescription": "only allow numbers."
+    },
+    "S3Bucket": {
+      "Description": "S3 Bucket where zip file stores",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "Default": "tidbcloud-aws-ecosys"
+    },
+    "S3Key": {
+      "Description": "S3 Key",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "32",
+      "Default": "index.zip"
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "a2b2718b-90c4-4293-9f46-3369cc065de6": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 270,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": ["9d32774a-05b0-472b-a7a7-6af35556faca"]
+      },
+      "d49149a6-5b17-4de2-b298-0e1340e67c41": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 960,
+          "y": 210
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": [
+          "a2b2718b-90c4-4293-9f46-3369cc065de6",
+          "b7b38840-5c04-4cfc-96d7-713e9b4d8f5a",
+          "b96ff2a1-e286-4d4a-a422-d25d2c658892",
+          "d3a6c4ce-68f9-4f44-bb7e-eedd291d7534"
+        ]
+      },
+      "122bda77-164e-4b6f-a9bb-b713c595ccd9": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": -140
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "3dc7b5dc-ea4e-440e-8242-2b9781b23533": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": -40
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "bcbc750c-a224-44b9-827b-d4c1ce87abfa": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 60,
+          "y": 150
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "69f7a272-0a81-41d9-a12e-fbaeb18dd5fe": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 1110,
+          "y": 210
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": [
+          "3dc7b5dc-ea4e-440e-8242-2b9781b23533",
+          "122bda77-164e-4b6f-a9bb-b713c595ccd9",
+          "fe6e761b-41ff-488a-902e-96b26b67f47a",
+          "56e38808-db6a-4d28-b923-b8aa6184fb31",
+          "77dead00-6745-497f-ba00-63b87fad9560",
+          "6b14fe3f-3937-4257-8497-38a632e01c45",
+          "1a87788a-0cdb-448c-99e8-863613fd9a2d"
+        ]
+      },
+      "d271e6be-4fe4-42dd-a77e-b9d4a45b0143": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 1110,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": [
+          "69f7a272-0a81-41d9-a12e-fbaeb18dd5fe",
+          "122bda77-164e-4b6f-a9bb-b713c595ccd9",
+          "fe6e761b-41ff-488a-902e-96b26b67f47a",
+          "56e38808-db6a-4d28-b923-b8aa6184fb31",
+          "77dead00-6745-497f-ba00-63b87fad9560",
+          "6b14fe3f-3937-4257-8497-38a632e01c45",
+          "1a87788a-0cdb-448c-99e8-863613fd9a2d"
+        ]
+      },
+      "ee27c69c-0ae2-4b40-8097-33c802250c0a": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 270,
+          "y": -40
+        },
+        "z": 1,
+        "embeds": [],
+        "isassociatedwith": ["a2b2718b-90c4-4293-9f46-3369cc065de6"]
+      },
+      "fe6e761b-41ff-488a-902e-96b26b67f47a": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "9d32774a-05b0-472b-a7a7-6af35556faca": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 60,
+          "y": 240
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "b7b38840-5c04-4cfc-96d7-713e9b4d8f5a": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 270,
+          "y": 330
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": ["9d32774a-05b0-472b-a7a7-6af35556faca"]
+      },
+      "d3a6c4ce-68f9-4f44-bb7e-eedd291d7534": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 600,
+          "y": 330
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": ["9d32774a-05b0-472b-a7a7-6af35556faca"]
+      },
+      "b96ff2a1-e286-4d4a-a422-d25d2c658892": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 600,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": [],
+        "dependson": ["9d32774a-05b0-472b-a7a7-6af35556faca"]
+      },
+      "616cc746-f5e5-4fb7-ab63-e9cffd9bbc8b": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 600,
+          "y": 450
+        },
+        "z": 1,
+        "embeds": [],
+        "isassociatedwith": ["d3a6c4ce-68f9-4f44-bb7e-eedd291d7534"]
+      },
+      "c9be6824-da22-4087-ab96-994b2e7fdab3": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 600,
+          "y": -40
+        },
+        "z": 1,
+        "embeds": [],
+        "isassociatedwith": ["b96ff2a1-e286-4d4a-a422-d25d2c658892"]
+      },
+      "43f72e99-ce8f-46bd-8927-d27f4ed6165a": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 270,
+          "y": 450
+        },
+        "z": 1,
+        "embeds": [],
+        "isassociatedwith": ["b7b38840-5c04-4cfc-96d7-713e9b4d8f5a"]
+      },
+      "3b25f3ea-44ab-42ee-a734-d3373bcd53ec": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": 330
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "3f3509a5-b575-41b7-a456-ee8fa89a01a4": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 750,
+          "y": 330
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "6b14fe3f-3937-4257-8497-38a632e01c45": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 750,
+          "y": 450
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "b6768b8a-264f-46ac-86c2-bcc80ca7f70b": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 750,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "77dead00-6745-497f-ba00-63b87fad9560": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 750,
+          "y": -40
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "56e38808-db6a-4d28-b923-b8aa6184fb31": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": 450
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "1a87788a-0cdb-448c-99e8-863613fd9a2d": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": 550
+        },
+        "z": 1,
+        "embeds": []
+      }
+    }
+  },
+  "Resources": {
+    "SecretManager": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Properties": {
+        "Name": "autogenerated/cloudformation/tidbcloud",
+        "SecretString": {
+          "Fn::Join": [
+            "",
+            [
+              "{ \"TiDBHost\": \"",
+              {
+                "Ref": "TiDBHost"
+              },
+              "\", \"TiDBPort\": \"",
+              {
+                "Ref": "TiDBPort"
+              },
+              "\", \"TiDBUser\": \"",
+              {
+                "Ref": "TiDBUser"
+              },
+              "\", \"TiDBPassword\": \"",
+              {
+                "Ref": "TiDBPassword"
+              },
+              "\", \"TiDBDatabase\": \"",
+              {
+                "Ref": "TiDBDatabase"
+              },
+              "\" }"
+            ]
+          ]
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "9d32774a-05b0-472b-a7a7-6af35556faca"
+        }
+      }
+    },
+    "getBookFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.getBookHandler",
+        "Role": {
+          "Fn::GetAtt": ["LambdaIAMRole", "Arn"]
+        },
+        "Runtime": "nodejs18.x",
+        "FunctionName": "getBookFunction",
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3Bucket"
+          },
+          "S3Key": {
+            "Ref": "S3Key"
+          }
+        }
+      },
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a2b2718b-90c4-4293-9f46-3369cc065de6"
+        }
+      }
+    },
+    "postBookFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.postBookHandler",
+        "Role": {
+          "Fn::GetAtt": ["LambdaIAMRole", "Arn"]
+        },
+        "Runtime": "nodejs18.x",
+        "FunctionName": "postBookFunction",
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3Bucket"
+          },
+          "S3Key": {
+            "Ref": "S3Key"
+          }
+        }
+      },
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "b7b38840-5c04-4cfc-96d7-713e9b4d8f5a"
+        }
+      }
+    },
+    "putBookFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.putBookHandler",
+        "Role": {
+          "Fn::GetAtt": ["LambdaIAMRole", "Arn"]
+        },
+        "Runtime": "nodejs18.x",
+        "FunctionName": "putBookFunction",
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3Bucket"
+          },
+          "S3Key": {
+            "Ref": "S3Key"
+          }
+        }
+      },
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "b96ff2a1-e286-4d4a-a422-d25d2c658892"
+        }
+      }
+    },
+    "deleteBookFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.deleteBookHandler",
+        "Role": {
+          "Fn::GetAtt": ["LambdaIAMRole", "Arn"]
+        },
+        "Runtime": "nodejs18.x",
+        "FunctionName": "deleteBookFunction",
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3Bucket"
+          },
+          "S3Key": {
+            "Ref": "S3Key"
+          }
+        }
+      },
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d3a6c4ce-68f9-4f44-bb7e-eedd291d7534"
+        }
+      }
+    },
+    "HttpApi": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "TiDBCloudApiGatewayV2",
+        "Description": "TiDBCloudApiGatewayV2",
+        "ProtocolType": "HTTP",
+        "CorsConfiguration": {
+          "AllowMethods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+          "AllowOrigins": ["*"]
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d49149a6-5b17-4de2-b298-0e1340e67c41"
+        }
+      },
+      "DependsOn": [
+        "getBookFunction",
+        "postBookFunction",
+        "putBookFunction",
+        "deleteBookFunction"
+      ]
+    },
+    "HttpApiDeployment": {
+      "Type": "AWS::ApiGatewayV2::Deployment",
+      "Properties": {
+        "Description": "My deployment",
+        "ApiId": {
+          "Ref": "HttpApi"
+        }
+      },
+      "DependsOn": [
+        "BookRoute",
+        "GetBookDetailRoute",
+        "PostBookRoute",
+        "PostBookInitRoute",
+        "PutBookRoute",
+        "DeleteBookRoute"
+      ],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d271e6be-4fe4-42dd-a77e-b9d4a45b0143"
+        }
+      }
+    },
+    "DefaultStage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "DependsOn": [
+        "BookRoute",
+        "GetBookDetailRoute",
+        "PostBookRoute",
+        "PostBookInitRoute",
+        "PutBookRoute",
+        "DeleteBookRoute"
+      ],
+      "Properties": {
+        "StageName": "$default",
+        "AutoDeploy": true,
+        "Description": "HttpApi Stage",
+        "DeploymentId": {
+          "Ref": "HttpApiDeployment"
+        },
+        "ApiId": {
+          "Ref": "HttpApi"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "69f7a272-0a81-41d9-a12e-fbaeb18dd5fe"
+        }
+      }
+    },
+    "GetbookLambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "Description": "Lambda Integration",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": ["getBookFunction", "Arn"]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IntegrationMethod": "POST",
+        "PayloadFormatVersion": "2.0"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "3dc7b5dc-ea4e-440e-8242-2b9781b23533"
+        }
+      }
+    },
+    "BookRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /book",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "GetbookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "122bda77-164e-4b6f-a9bb-b713c595ccd9"
+        }
+      },
+      "DependsOn": ["GetbookLambdaIntegration"]
+    },
+    "GetBookDetailRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /book/{id}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "GetbookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["GetbookLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "fe6e761b-41ff-488a-902e-96b26b67f47a"
+        }
+      }
+    },
+    "PostBookLambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "Description": "Lambda Integration",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": ["postBookFunction", "Arn"]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IntegrationMethod": "POST",
+        "PayloadFormatVersion": "2.0"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "3b25f3ea-44ab-42ee-a734-d3373bcd53ec"
+        }
+      }
+    },
+    "PostBookRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /book",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "PostBookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["PostBookLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "56e38808-db6a-4d28-b923-b8aa6184fb31"
+        }
+      }
+    },
+    "PostBookInitRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /book/init",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "PostBookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["PostBookLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "1a87788a-0cdb-448c-99e8-863613fd9a2d"
+        }
+      }
+    },
+    "PutBookLambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "Description": "Lambda Integration",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": ["putBookFunction", "Arn"]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IntegrationMethod": "POST",
+        "PayloadFormatVersion": "2.0"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "b6768b8a-264f-46ac-86c2-bcc80ca7f70b"
+        }
+      }
+    },
+    "PutBookRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "PUT /book/{id}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "PutBookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["PutBookLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "77dead00-6745-497f-ba00-63b87fad9560"
+        }
+      }
+    },
+    "DeleteBookLambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "Description": "Lambda Integration",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": ["deleteBookFunction", "Arn"]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IntegrationMethod": "POST",
+        "PayloadFormatVersion": "2.0"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "3f3509a5-b575-41b7-a456-ee8fa89a01a4"
+        }
+      }
+    },
+    "DeleteBookRoute": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "DELETE /book/{id}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "DeleteBookLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["DeleteBookLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "6b14fe3f-3937-4257-8497-38a632e01c45"
+        }
+      }
+    },
+    "LambdaIAMRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "TiDBCloudLambdaSMRole",
+        "Description": "LambdaIAMRole requires SecretsManagerReadWrite and AWSLambdaBasicExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/SecretsManagerReadWrite",
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        ],
+        "Path": "/"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "bcbc750c-a224-44b9-827b-d4c1ce87abfa"
+        }
+      }
+    },
+    "getBookFuncInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": ["getBookFunction", "Arn"]
+        },
+        "Principal": "apigateway.amazonaws.com"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "ee27c69c-0ae2-4b40-8097-33c802250c0a"
+        }
+      }
+    },
+    "postBookFuncInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": ["postBookFunction", "Arn"]
+        },
+        "Principal": "apigateway.amazonaws.com"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "43f72e99-ce8f-46bd-8927-d27f4ed6165a"
+        }
+      }
+    },
+    "putBookFuncInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": ["putBookFunction", "Arn"]
+        },
+        "Principal": "apigateway.amazonaws.com"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "c9be6824-da22-4087-ab96-994b2e7fdab3"
+        }
+      }
+    },
+    "deleteBookFuncInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": ["deleteBookFunction", "Arn"]
+        },
+        "Principal": "apigateway.amazonaws.com"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "616cc746-f5e5-4fb7-ab63-e9cffd9bbc8b"
+        }
+      }
+    }
+  }
+}

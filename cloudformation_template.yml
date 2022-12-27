@@ -327,6 +327,7 @@ Resources:
       Code:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
+      Timeout: 15
     DependsOn:
       - SecretManager
       - LambdaIAMRole
@@ -345,6 +346,7 @@ Resources:
       Code:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
+      Timeout: 15
     DependsOn:
       - SecretManager
       - LambdaIAMRole
@@ -363,6 +365,7 @@ Resources:
       Code:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
+      Timeout: 15
     DependsOn:
       - SecretManager
       - LambdaIAMRole
@@ -381,6 +384,7 @@ Resources:
       Code:
         S3Bucket: !Ref S3Bucket
         S3Key: !Ref S3Key
+      Timeout: 15
     DependsOn:
       - SecretManager
       - LambdaIAMRole

@@ -35,8 +35,6 @@ To set up the bookshop demo by Cloudformation, follow these steps:
 6. Select the "Upload a template file" option, and choose the CloudFormation template file (`either cloudformation_template.yml` or `cloudformation_template.json`) that you want to use.
 7. Follow the prompts to complete the stack creation process. This may take a few minutes.
 
-> TODO: add S3 bucket URI
-
 <details>
   <summary><h2>🍳 Setting up the demo step-by-step</h2></summary>
 
@@ -215,7 +213,7 @@ curl https://<your-api-endpoint>/book/1
 ### Post a new book
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{ "title": "Book Title", "type": "Test", "publishAt": "2022-12-15T21:01:49.000Z", "stock": "123", "price": "12.34", "authors": "Test Test" }' https://<your-api-endpoint>/book
+curl -X POST -H "Content-Type: application/json" -d '{ "title": "Book Title", "type": "Test", "publishAt": "2022-12-15T21:01:49.000Z", "stock": 123, "price": 12.34, "authors": "Test Test" }' https://<your-api-endpoint>/book
 ```
 
 ### Delete a book by id
@@ -228,7 +226,9 @@ curl -X DELETE https://<your-api-endpoint>/book/1
 
 ### CloudFormation stack
 
-Delete the stack in CloudFormation service in AWS Management Console.
+- Delete the stack in CloudFormation service in AWS Management Console.
+
+- Delete the S3 bucket in S3 service in AWS Management Console.
 
 ### Step-by-step guide
 

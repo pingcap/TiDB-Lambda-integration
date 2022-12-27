@@ -422,7 +422,8 @@
           "S3Key": {
             "Ref": "S3Key"
           }
-        }
+        },
+        "Timeout": 15
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -447,7 +448,8 @@
           "S3Key": {
             "Ref": "S3Key"
           }
-        }
+        },
+        "Timeout": 15
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -472,7 +474,8 @@
           "S3Key": {
             "Ref": "S3Key"
           }
-        }
+        },
+        "Timeout": 15
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -497,7 +500,8 @@
           "S3Key": {
             "Ref": "S3Key"
           }
-        }
+        },
+        "Timeout": 15
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {

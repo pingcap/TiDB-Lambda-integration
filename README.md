@@ -28,11 +28,12 @@ Create a [TiDB Cloud](https://tidbcloud.com/) account and get your free trial cl
 To set up the bookshop demo by Cloudformation, follow these steps:
 
 1. Download the [latest release assets](https://github.com/shczhen/aws-cloudformation-bookshop-test/releases/latest) to your local machine.
-2. In the assets, you will find two files: `cloudformation_template.yml` and `cloudformation_template.json`. These files contain the AWS CloudFormation template that will be used to create all of the necessary resources for the demo, including the Secrets Manager, API Gateway, and Lambda Functions. You can use either the `.yml` or `.json` file, depending on your preference.
-3. In the AWS Management Console, navigate to the CloudFormation service.
-4. Click the "Create Stack" button.
-5. Select the "Upload a template file" option, and choose the CloudFormation template file (`either cloudformation_template.yml` or `cloudformation_template.json`) that you want to use.
-6. Follow the prompts to complete the stack creation process. This may take a few minutes.
+2. In the assets, you will find the file `index.zip`, this is the Lambda function code that will be used in the demo. Upload this file to an S3 bucket in your AWS account. Do remember to note down the S3 bucket name and the file name, and make sure the S3 bucket is the same region as your next CloudFormation stack.
+3. In the assets, you will find two files: `cloudformation_template.yml` and `cloudformation_template.json`. These files contain the AWS CloudFormation template that will be used to create all of the necessary resources for the demo, including the Secrets Manager, API Gateway, and Lambda Functions. You can use either the `.yml` or `.json` file, depending on your preference.
+4. In the AWS Management Console, navigate to the CloudFormation service.
+5. Click the "Create Stack" button.
+6. Select the "Upload a template file" option, and choose the CloudFormation template file (`either cloudformation_template.yml` or `cloudformation_template.json`) that you want to use.
+7. Follow the prompts to complete the stack creation process. This may take a few minutes.
 
 > TODO: add S3 bucket URI
 

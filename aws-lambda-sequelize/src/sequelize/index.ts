@@ -3,29 +3,21 @@ import mysql2 from "mysql2";
 
 const SSL_FLAGS = "pool_timeout=60&sslaccept=accept_invalid_certs";
 
-import { initSecretManager } from "../secretManager";
-
-export type SecretType = {
-  TiDBHost: string;
-  TiDBPort: string;
-  TiDBUser: string;
-  TiDBPassword: string;
-  TiDBDatabase: string;
-};
+import { initSecretManager, SecretType } from "../secretManager";
 
 export async function loadSequelize() {
-  const secret: SecretType = await initSecretManager();
+  const secret = await initSecretManager();
 
-  const database = secret.TiDBDatabase || process.env.DATABASE || "test";
-  const userName = secret.TiDBUser || process.env.TIDB_USER || "root";
-  const password = secret.TiDBPassword || process.env.TIDB_PASSWORD || "";
+  const database = secret?.TiDBDatabase || process.env.DATABASE || "test";
+  const userName = secret?.TiDBUser || process.env.TIDB_USER || "root";
+  const password = secret?.TiDBPassword || process.env.TIDB_PASSWORD || "";
 
   const sequelize = new Sequelize(database, userName, password, {
     dialect: "mysql",
     // https://github.com/sequelize/sequelize/issues/9489
     dialectModule: mysql2,
-    host: secret.TiDBHost || process.env.TIDB_HOST || "localhost",
-    port: parseInt(secret.TiDBPort || process.env.TIDB_PORT || "4000"),
+    host: secret?.TiDBHost || process.env.TIDB_HOST || "localhost",
+    port: parseInt(secret?.TiDBPort || process.env.TIDB_PORT || "4000"),
     dialectOptions: {
       ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true },
       engine: "MYISAM",

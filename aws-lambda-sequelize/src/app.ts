@@ -25,6 +25,11 @@ function initFastify() {
     logger: true,
   });
   fastify.register(commonRoutes);
+  return fastify;
+}
+
+export function allBook() {
+  const fastify = initFastify();
   fastify.register(getBookRoutes);
   fastify.register(postBookRoutes);
   fastify.register(updateBookRoutes);
@@ -64,7 +69,7 @@ export function deleteBook() {
 
 if (require.main === module) {
   console.log("Running as a script");
-  initFastify().listen({ port: 3000 }, (err, address) => {
+  allBook().listen({ port: 3000 }, (err, address) => {
     if (err) throw err;
     // Server is now listening on ${address}
   });

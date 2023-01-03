@@ -1,10 +1,8 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { Op } from "sequelize";
 
 import { loadSequelize } from "../sequelize";
 import { getBookModel } from "../sequelize/model";
-import { initSecretManager } from "../secretManager";
-import { BookProps, BookBodyProps } from "./postBook";
 
 const PREFIX = "/book";
 

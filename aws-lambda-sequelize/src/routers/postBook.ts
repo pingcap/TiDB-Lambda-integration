@@ -1,9 +1,8 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { faker } from "@faker-js/faker";
 
 import { loadSequelize } from "../sequelize";
 import { getBookModel } from "../sequelize/model";
-import { initSecretManager } from "../secretManager";
 
 const PREFIX = "/book";
 

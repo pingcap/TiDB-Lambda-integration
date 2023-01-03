@@ -1,9 +1,8 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { Op } from "sequelize";
 
 import { loadSequelize } from "../sequelize";
 import { getBookModel } from "../sequelize/model";
-import { initSecretManager } from "../secretManager";
 
 const PREFIX = "/book";
 
@@ -12,7 +11,6 @@ export async function getBookRoutes(fastify: FastifyInstance, options: any) {
     try {
       const query = request.query as { [key: string]: string };
       const result = await listBooks(query);
-      const secrets = await initSecretManager();
       reply
         .type("application/json")
         .code(200)
@@ -22,9 +20,6 @@ export async function getBookRoutes(fastify: FastifyInstance, options: any) {
             method: `${request.method}`,
             query,
             result,
-            secret: {
-              port: secrets.port,
-            },
           })
         );
     } catch (err: any) {

@@ -38,6 +38,12 @@ To set up the bookshop demo by Cloudformation, follow these steps:
 <details>
   <summary><h2>🍳 Setting up the demo step-by-step</h2></summary>
 
+> Note:
+>
+> All resources created in this section will be charged to your AWS account. Please make sure you have enough credits in your account before proceeding.
+>
+> The defualut region is **`us-east-1`**.
+
 ### 1. Create a Secrets Manager service
 
 Visit Secrets Manager service in AWS Management Console, and click `Store a new secret` button.

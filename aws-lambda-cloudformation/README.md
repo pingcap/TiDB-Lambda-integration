@@ -1,4 +1,4 @@
-# aws-lambda-sequelize Code Example
+# aws-lambda-cloudformation Code Example
 
 This repository contains an AWS Lambda function that uses TiDB Cloud as the database, Sequelize as the ORM, Fastify as the API framework, and AWS Secrets Manager SDK to retrieve connection configurations.
 
@@ -12,7 +12,7 @@ This repository contains an AWS Lambda function that uses TiDB Cloud as the data
 ## Installation
 
 1. Install Node.js 18.x and yarn on your machine.
-2. Clone this repository and navigate to the project directory `/aws-lambda-sequelize`.
+2. Clone this repository and navigate to the project directory `/aws-lambda-cloudformation`.
 3. Run `yarn install` to install the dependencies.
 
 ## Usage

@@ -88,7 +88,7 @@ Edit `Runtime settings` of the Lambda function, and set `Handler` to `getBookHan
 
 Choose `Configuration` tab - `General configuration`, and set `Timeout` to `30 sec`. Click `Save` button.
 
-> We build the Lambda function in the `index.zip` file, and you can also build it by yourself. See [README](aws-lambda-sequelize/README.md) for more details.
+> We build the Lambda function in the `index.zip` file, and you can also build it by yourself. See [README](aws-lambda-cloudformation/README.md) for more details.
 
 #### 3.2 Create a Lambda function to post a new book / post initial books
 
@@ -214,6 +214,12 @@ curl https://<your-api-endpoint>/book
 
 ```bash
 curl https://<your-api-endpoint>/book/1
+```
+
+### Update a book by id
+
+```bash
+curl -X PUT -H "Content-Type: application/json" -d '{ "title": "Book Title(updated)" }' https://<your-api-endpoint>/book/1
 ```
 
 ### Post a new book

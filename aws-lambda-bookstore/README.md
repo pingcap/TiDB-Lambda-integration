@@ -194,9 +194,9 @@ You're ready to test your functions:
 
 2. Choose HTTP API type and click **Build** to create an API. Remember to add the integration to your Lambda function **bookstoreLambda**.
 
-   ![Create an API](https://user-images.githubusercontent.com/56986964/212818827-402201fc-2fff-4cd9-8f38-e858932ac6ab.png "image_tooltip")
+   ![Choose HTTP API type](https://user-images.githubusercontent.com/56986964/212818827-402201fc-2fff-4cd9-8f38-e858932ac6ab.png "image_tooltip")
 
-   _Create an API_
+   _Choose HTTP API type_
 
    ![Create an API](https://user-images.githubusercontent.com/56986964/212818852-d8ae779b-6e53-4a70-a480-ce09a56a4f4b.png "image_tooltip")
 

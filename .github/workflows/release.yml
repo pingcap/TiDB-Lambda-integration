@@ -5,9 +5,9 @@ on:
     types: [published]
 
 jobs:
-  build:
+  cloudformation:
     runs-on: ubuntu-latest
-    name: Build and Update release assets
+    name: CF - Build and Update release assets
     steps:
       - uses: actions/checkout@v3
       - name: Setup Node.js environment
@@ -20,17 +20,50 @@ jobs:
         with:
           path: |
             aws-lambda-cloudformation/node_modules
-          key: ${{ runner.os }}-release-${{ hashFiles('aws-lambda-cloudformation/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-release-
+          key: ${{ runner.os }}-release-cf-${{ hashFiles('aws-lambda-cloudformation/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-release-cf-
 
       - name: Bundle
         run: |
           cd aws-lambda-cloudformation
           yarn
           yarn build
+          rm -fr ./dist/index.js*
+          mv ./dist/index.zip ./dist/cloudformation-index.zip
           cp ../cloudformation* ./dist/
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.3.0
         with:
           file: aws-lambda-cloudformation/dist/*
+          file_glob: true
+
+  bookstorelambda:
+    runs-on: ubuntu-latest
+    name: Lambda - Build and Update release assets
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3.5.1
+        with:
+          node-version: 18
+          cache: "yarn"
+          cache-dependency-path: "aws-lambda-bookstore/yarn.lock"
+      - uses: actions/cache@v3
+        with:
+          path: |
+            aws-lambda-bookstore/node_modules
+          key: ${{ runner.os }}-release-lambda-${{ hashFiles('aws-lambda-bookstore/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-release-lambda-
+
+      - name: Bundle
+        run: |
+          cd aws-lambda-bookstore
+          yarn
+          yarn build
+          rm -fr ./dist/index.js*
+          mv ./dist/index.zip ./dist/bookstore-lambda-index.zip
+      - name: Upload files to a GitHub release
+        uses: svenstaro/upload-release-action@2.3.0
+        with:
+          file: aws-lambda-bookstore/dist/*
           file_glob: true

@@ -47,7 +47,7 @@ Parameters:
     Type: String
     MinLength: "1"
     MaxLength: "32"
-    Default: index.zip
+    Default: cloudformation-index.zip
 Metadata:
   "AWS::CloudFormation::Designer":
     a2b2718b-90c4-4293-9f46-3369cc065de6:

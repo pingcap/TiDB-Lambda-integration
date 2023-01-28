@@ -1,6 +1,6 @@
 # Design High-Performance Apps Using Serverless Technologies Like TiDB and AWS Lambda
 
-[TiDB](https://github.com/pingcap/tidb) is an open-source, MySQL-compatible NewSQL database that offers horizontal scalability, consistency, and high availability. [TiDB Cloud](https://docs.pingcap.com/tidbcloud/tidb-cloud-) is its fully-managed Database-as-a-Service (DBaaS). It lets you deploy your infrastructure at scale cost-efficiently without managing server infrastructure.
+[TiDB](https://github.com/pingcap/tidb) is an open-source, MySQL-compatible NewSQL database that offers horizontal scalability, consistency, and high availability. [TiDB Cloud](https://docs.pingcap.com/tidbcloud/tidb-cloud-intro) is its fully-managed Database-as-a-Service (DBaaS). It lets you deploy your infrastructure at scale cost-efficiently without managing server infrastructure.
 
 This doc demonstrates how you can employ TiDB Cloud in your serverless applications on [AWS Lambda](https://aws.amazon.com/lambda/) by constructing a bookstore management API. The API will enable end-users to perform actions such as listing, creating, updating, and deleting books.
 

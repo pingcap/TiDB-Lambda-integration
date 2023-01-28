@@ -30,7 +30,7 @@ jobs:
           yarn build
           rm -fr ./dist/index.js*
           mv ./dist/index.zip ./dist/cloudformation-index.zip
-          cp ../cloudformation* ./dist/
+          cp ./cloudformation* ./dist/
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.3.0
         with:

@@ -23,7 +23,7 @@ To access TiDB Cloud from AWS Lambda:
 1. [Create a TiDB Cloud cluster](#create-a-tidb-cloud-cluster).
 2. [Store authentication credentials in Secrets Manager](#store-authentication-credentials-in-secrets-manager).
 3. [Create an AWS Lambda function](#create-an-aws-lambda-function).
-4. [Package Lambda code](#package-lambda-code).
+4. [Package Lambda code(ignore if use `us-east-1` region)](#package-lambda-code).
 5. [Deploy your AWS Lambda function](#deploy-your-aws-lambda-function).
 6. [Verify results with the AWS API Gateway](#verify-results-with-the-aws-api-gateway).
 
@@ -99,6 +99,10 @@ This will create a blank function for you.
 
 ### Package Lambda code
 
+> **Note:**
+>
+> Skip this step if you are using `us-east-1` region.
+
 Check the demo [code repository](https://github.com/pingcap/TiDB-Lambda-integration) for a full example.
 
 We recommend using the [AWS Cloud9](https://aws.amazon.com/cloud9/) IDE to have a consistent development environment, which is regardless of the local environment.
@@ -157,6 +161,10 @@ Finally, we use `@fastify/aws-lambda` to wrap the function `initFastify`, and ex
 
 ### Build a code bundle
 
+> **Note:**
+>
+> Skip this step if you are using `us-east-1` region.
+
 We cannot directly upload source code to Lambda functions, so we need to build and zip code. The final zip file has the `index.js` with the `handler`.
 
 To create a code bundle and zip file:
@@ -180,7 +188,7 @@ To create a code bundle and zip file:
 
 ### Deploy your AWS Lambda function
 
-Deploy your code to your Lambda function by uploading the zip file you created earlier.
+If you are using `us-east-1` region, you can directly use Amazon S3 Location(https://tidb-lambda-integration.s3.amazonaws.com/bookstore-lambda-index.zip) to deploy your Lambda function. Otherwise, you need to deploy your code to your Lambda function by uploading the zip file you created earlier.
 
 ![Upload the zip file](https://user-images.githubusercontent.com/56986964/212818792-80f88d5e-f536-4307-9776-8d7937be9656.png "image_tooltip")
 

@@ -41,7 +41,7 @@ Parameters:
     Type: String
     MinLength: "1"
     MaxLength: "64"
-    Default: tidbcloud-aws-ecosys
+    Default: tidb-lambda-integration
   S3Key:
     Description: S3 Key
     Type: String

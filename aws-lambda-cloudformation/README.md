@@ -23,19 +23,26 @@ Before you can use this project, you will need the following:
 
 Create a [TiDB Cloud](https://tidbcloud.com/) account and get your free trial cluster(Serverless Tier).
 
-Do remember use aws region `us-east-1` to create all your aws resources. If you are not in this region, you should change the region in `aws-lambda-cloudformation/src/secretManager.ts` and create your code bundle by yourself.
+Do remember use aws region `us-east-1` to create all your aws resources. If you are not in this region, you should change the region in [`aws-lambda-cloudformation/src/secretManager.ts`](./src/secretManager.ts) and create your code bundle by yourself.
 
 ## 🚀 Setting up the demo by Cloudformation template
+
+> Note:
+>
+> We upload the code bundle to S3 bucket, so you can directly use code bundle in `us-east-1` region.
+>
+> The URL is https://tidb-lambda-integration.s3.amazonaws.com/cloudformation-index.zip
+>
+> If you are not in this region, you should change the region in [`aws-lambda-cloudformation/src/secretManager.ts`](./src/secretManager.ts) and create your code bundle by yourself.
 
 To set up the bookshop demo by Cloudformation, follow these steps:
 
 1. Download the [latest release assets](https://github.com/pingcap/TiDB-Lambda-integration/releases/latest) to your local machine.
-2. In the assets, you will find the file `cloudformation-index.zip`, this is the Lambda function code that will be used in the demo. Upload this file to an S3 bucket in your AWS account. Do remember to note down the S3 bucket name and the file name, and make sure the S3 bucket is the same region as your next CloudFormation stack.
-3. In the assets, you will find two files: `cloudformation_template.yml` and `cloudformation_template.json`. These files contain the AWS CloudFormation template that will be used to create all of the necessary resources for the demo, including the Secrets Manager, API Gateway, and Lambda Functions. You can use either the `.yml` or `.json` file, depending on your preference.
-4. In the AWS Management Console, navigate to the CloudFormation service.
-5. Click the "Create Stack" button.
-6. Select the "Upload a template file" option, and choose the CloudFormation template file (`either cloudformation_template.yml` or `cloudformation_template.json`) that you want to use.
-7. Follow the prompts to complete the stack creation process. This may take a few minutes.
+2. In the assets, you will find two files: `cloudformation_template.yml` and `cloudformation_template.json`. These files contain the AWS CloudFormation template that will be used to create all of the necessary resources for the demo, including the Secrets Manager, API Gateway, and Lambda Functions. You can use either the `.yml` or `.json` file, depending on your preference.
+3. In the AWS Management Console, navigate to the CloudFormation service.
+4. Click the "Create Stack" button.
+5. Select the "Upload a template file" option, and choose the CloudFormation template file (`either cloudformation_template.yml` or `cloudformation_template.json`) that you want to use.
+6. Follow the prompts to complete the stack creation process. This may take a few minutes.
 
 <details>
   <summary><h2>🍳 Setting up the demo step-by-step</h2></summary>
@@ -45,6 +52,8 @@ To set up the bookshop demo by Cloudformation, follow these steps:
 > All resources created in this section will be charged to your AWS account. Please make sure you have enough credits in your account before proceeding.
 >
 > The defualut region is **`us-east-1`**.
+>
+> If you are not in this region, you should change the region in `aws-lambda-cloudformation/src/secretManager.ts` and create your code bundle by yourself.
 
 ### 1. Create a Secrets Manager service
 
@@ -82,7 +91,7 @@ Select `Change default execution role` - `Use an existing role`, and select the 
 
 Click `Create function` button.
 
-Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets.
+Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets(create your own code bundle if you are not in `us-east-1` region).
 
 Click `Save` button.
 
@@ -102,7 +111,7 @@ Select `Change default execution role` - `Use an existing role`, and select the 
 
 Click `Create function` button.
 
-Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets.
+Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets(create your own code bundle if you are not in `us-east-1` region).
 
 Click `Save` button.
 
@@ -120,7 +129,7 @@ Select `Change default execution role` - `Use an existing role`, and select the 
 
 Click `Create function` button.
 
-Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets.
+Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets(create your own code bundle if you are not in `us-east-1` region).
 
 Click `Save` button.
 
@@ -138,7 +147,7 @@ Select `Change default execution role` - `Use an existing role`, and select the 
 
 Click `Create function` button.
 
-Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets.
+Click `Upload a .zip file` button, and upload the `cloudformation-index.zip` file in the latest release assets(create your own code bundle if you are not in `us-east-1` region).
 
 Click `Save` button.
 

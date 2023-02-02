@@ -33,7 +33,7 @@ To access TiDB Cloud from AWS Lambda:
 
 2. Click **Connect** to get TiDB Connection Information.
 
-   ![Get TiDB Connection Information](https://user-images.githubusercontent.com/56986964/212818419-db932b3d-8401-426c-a587-ffd5fd6e6d35.png "image_tooltip")
+   ![Get TiDB Connection Information](https://user-images.githubusercontent.com/56986964/216237283-5fc6a68b-083f-4c5c-9926-ca36959a9b66.png "image_tooltip")
 
    _Get TiDB Connection Information_
 

@@ -64,7 +64,7 @@
       "Type": "String",
       "MinLength": "1",
       "MaxLength": "32",
-      "Default": "bookstore-lambda-vpc-index.zip"
+      "Default": "bookstore-lambda-index.zip"
     }
   },
   "Resources": {

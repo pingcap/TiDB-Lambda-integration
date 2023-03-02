@@ -6,7 +6,9 @@ const SSL_FLAGS = "pool_timeout=60&sslaccept=accept_invalid_certs";
 import { initSecretManager } from "../secretManager";
 
 export async function loadSequelize() {
-  const secret = await initSecretManager();
+  const isEnvVarExist =
+    process.env.TIDB_HOST && process.env.TIDB_PASSWORD && process.env.TIDB_USER;
+  const secret = isEnvVarExist ? ({} as any) : await initSecretManager();
 
   const database = secret?.TiDBDatabase || process.env.DATABASE || "test";
   const userName = secret?.TiDBUser || process.env.TIDB_USER || "root";
@@ -56,7 +58,13 @@ export async function loadSequelize() {
   });
 
   // or `sequelize.sync()`
-  await sequelize.authenticate();
+  try {
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    throw error;
+  }
 
   return sequelize;
 }

@@ -1,0 +1,467 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Create a PrivateLink and a Lambda Application (Function + API Gateway) via AWS CloudFormation.",
+  "Parameters": {
+    "TiDBVPCEndpointServiceName": {
+      "Description": "TiDB Cloud VPC Endpoint Service Name",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+    },
+    "TiDBServerlessAvailabilityZone": {
+      "Description": "TiDB Cloud Serverless Tier Availability Zone (AZ)",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "Default": "us-west-2b"
+    },
+    "TiDBDatabase": {
+      "Description": "TiDB Cloud database name",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "Default": "test"
+    },
+    "TiDBUser": {
+      "NoEcho": "true",
+      "Description": "Username for TiDB Cloud database access",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "32"
+    },
+    "TiDBPassword": {
+      "NoEcho": "true",
+      "Description": "Password for TiDB Cloud database access",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+    },
+    "TiDBHost": {
+      "Description": "Host URL(Private) for TiDB Cloud database access",
+      "Default": "gateway01-privatelink.us-west-2.prod.aws.tidbcloud.com",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "256"
+    },
+    "TiDBPort": {
+      "Description": "Port for TiDB Cloud database access",
+      "Default": "4000",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "8",
+      "AllowedPattern": "[0-9]*",
+      "ConstraintDescription": "only allow numbers."
+    },
+    "S3Bucket": {
+      "Description": "S3 Bucket where zip file stores",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64",
+      "Default": "tidb-lambda-integration-us-west-2"
+    },
+    "S3Key": {
+      "Description": "S3 Key",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "32",
+      "Default": "bookstore-lambda-vpc-index.zip"
+    }
+  },
+  "Resources": {
+    "BookstoreVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.2.0.0/16",
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "bookstore-vpc"
+          }
+        ]
+      }
+    },
+    "BookstoreSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "DependsOn": ["BookstoreVPC"],
+      "Properties": {
+        "VpcId": { "Ref": "BookstoreVPC" },
+        "CidrBlock": "10.2.0.0/18",
+        "AvailabilityZone": { "Ref": "TiDBServerlessAvailabilityZone" },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "bookstore-subnet"
+          }
+        ]
+      }
+    },
+    "BookstorePublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "BookstoreVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "bookstore-public-route-table"
+          }
+        ]
+      }
+    },
+    "BookstorePublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": ["BookstoreAttachGateway", "BookstorePublicRouteTable"],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "BookstorePublicRouteTable"
+        },
+        "GatewayId": {
+          "Ref": "BookstoreInternetGateway"
+        }
+      }
+    },
+    "BookstoreSubnetRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "BookstorePublicRouteTable"
+        },
+        "SubnetId": {
+          "Ref": "BookstoreSubnet"
+        }
+      }
+    },
+    "BookstoreSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "SecurityGroup for Bookstore",
+        "VpcId": {
+          "Ref": "BookstoreVPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow All IP to SSH",
+            "FromPort": 0,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "bookstore-security-group"
+          }
+        ]
+      }
+    },
+    "BookstoreVPCRouteResolverEndpoint": {
+      "Type": "AWS::Route53Resolver::ResolverEndpoint",
+      "Properties": {
+        "Direction": "INBOUND",
+        "IpAddresses": [
+          {
+            "Ip": "10.2.1.254",
+            "SubnetId": { "Ref": "BookstoreSubnet" }
+          },
+          {
+            "Ip": "10.2.1.255",
+            "SubnetId": { "Ref": "BookstoreSubnet" }
+          }
+        ],
+        "Name": "bookstore-vpc-route-resolver-endpoint",
+        "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }]
+      }
+    },
+    "BookstoreVPCEndpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "Properties": {
+        "PrivateDnsEnabled": true,
+        "ServiceName": { "Ref": "TiDBVPCEndpointServiceName" },
+        "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
+        "SubnetIds": [{ "Ref": "BookstoreSubnet" }],
+        "VpcEndpointType": "Interface",
+        "VpcId": { "Ref": "BookstoreVPC" }
+      }
+    },
+    "BookstoreInternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "DependsOn": ["BookstoreVPC", "BookstoreSubnet"],
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "bookstore-internet-gateway"
+          }
+        ]
+      }
+    },
+    "BookstoreAttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "DependsOn": [
+        "BookstoreVPC",
+        "BookstoreSubnet",
+        "BookstoreInternetGateway"
+      ],
+      "Properties": {
+        "VpcId": { "Ref": "BookstoreVPC" },
+        "InternetGatewayId": { "Ref": "BookstoreInternetGateway" }
+      }
+    },
+    "LambdaIAMRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "TiDBCloudLambdaVPCRole",
+        "Description": "LambdaIAMRole requires AWSLambdaBasicExecutionRole and AWSLambdaVPCAccessExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+        ],
+        "Path": "/"
+      }
+    },
+    "BookstoreFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": ["LambdaIAMRole", "Arn"]
+        },
+        "Runtime": "nodejs18.x",
+        "FunctionName": "BookstoreVPCFunction",
+        "Code": {
+          "S3Bucket": {
+            "Ref": "S3Bucket"
+          },
+          "S3Key": {
+            "Ref": "S3Key"
+          }
+        },
+        "Timeout": 15,
+        "Environment": {
+          "Variables": {
+            "TIDB_PASSWORD": { "Ref": "TiDBPassword" },
+            "DATABASE": { "Ref": "TiDBDatabase" },
+            "TIDB_USER": { "Ref": "TiDBUser" },
+            "TIDB_HOST": { "Ref": "TiDBHost" },
+            "TIDB_PORT": { "Ref": "TiDBPort" }
+          }
+        },
+        "VpcConfig": {
+          "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
+          "SubnetIds": [{ "Ref": "BookstoreSubnet" }]
+        }
+      },
+      "DependsOn": [
+        "BookstoreSecurityGroup",
+        "BookstoreSubnet",
+        "BookstoreVPCRouteResolverEndpoint",
+        "LambdaIAMRole"
+      ]
+    },
+    "BookstoreHttpApi": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "Name": "BookstoreVPCAPIGatewayV2",
+        "Description": "TiDBCloudApiGatewayV2",
+        "ProtocolType": "HTTP",
+        "CorsConfiguration": {
+          "AllowMethods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+          "AllowOrigins": ["*"]
+        }
+      },
+      "DependsOn": ["BookstoreFunction"]
+    },
+    "BookstoreLambdaIntegration": {
+      "Type": "AWS::ApiGatewayV2::Integration",
+      "Properties": {
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        },
+        "Description": "Lambda Integration",
+        "IntegrationType": "AWS_PROXY",
+        "IntegrationUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": ["BookstoreFunction", "Arn"]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "IntegrationMethod": "POST",
+        "PayloadFormatVersion": "2.0"
+      },
+      "DependsOn": ["BookstoreHttpApi"]
+    },
+    "BookstoreRouteStatus": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "BookstoreLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["BookstoreLambdaIntegration"]
+    },
+    "BookstoreRouteGetAll": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "GET /book",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "BookstoreLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["BookstoreLambdaIntegration"]
+    },
+    "BookstoreRouteGetBookById": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "ANY /book/{id}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "BookstoreLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["BookstoreLambdaIntegration"],
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "fe6e761b-41ff-488a-902e-96b26b67f47a"
+        }
+      }
+    },
+    "BookstoreRouteInit": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        },
+        "AuthorizationType": "NONE",
+        "RouteKey": "POST /book/init",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "BookstoreLambdaIntegration"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": ["BookstoreLambdaIntegration"]
+    },
+    "BookstoreHttpApiDeployment": {
+      "Type": "AWS::ApiGatewayV2::Deployment",
+      "Properties": {
+        "Description": "My deployment",
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        }
+      },
+      "DependsOn": [
+        "BookstoreRouteStatus",
+        "BookstoreRouteGetAll",
+        "BookstoreRouteGetBookById",
+        "BookstoreRouteInit"
+      ]
+    },
+    "BookstoreDefaultStage": {
+      "Type": "AWS::ApiGatewayV2::Stage",
+      "DependsOn": ["BookstoreHttpApiDeployment"],
+      "Properties": {
+        "StageName": "$default",
+        "AutoDeploy": true,
+        "Description": "BookstoreHttpApi Stage",
+        "DeploymentId": {
+          "Ref": "BookstoreHttpApiDeployment"
+        },
+        "ApiId": {
+          "Ref": "BookstoreHttpApi"
+        }
+      }
+    },
+    "BookstoreFunctionInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": ["BookstoreFunction", "Arn"]
+        },
+        "Principal": "apigateway.amazonaws.com"
+      }
+    }
+  },
+  "Outputs": {
+    "BookstoreSecurityGroupID": {
+      "Value": { "Ref": "BookstoreSecurityGroup" }
+    },
+    "BookstoreResolverEndpointID": {
+      "Value": "10.2.1.254,10.2.1.255"
+    }
+  }
+}

@@ -398,7 +398,8 @@
               "\" }"
             ]
           ]
-        }
+        },
+        "KmsKeyId": "alias/aws/secretsmanager"
       },
       "Metadata": {
         "AWS::CloudFormation::Designer": {
@@ -423,7 +424,8 @@
             "Ref": "S3Key"
           }
         },
-        "Timeout": 15
+        "Timeout": 15,
+        "ReservedConcurrentExecutions": 1
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -449,7 +451,8 @@
             "Ref": "S3Key"
           }
         },
-        "Timeout": 15
+        "Timeout": 15,
+        "ReservedConcurrentExecutions": 1
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -475,7 +478,8 @@
             "Ref": "S3Key"
           }
         },
-        "Timeout": 15
+        "Timeout": 15,
+        "ReservedConcurrentExecutions": 1
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -501,7 +505,8 @@
             "Ref": "S3Key"
           }
         },
-        "Timeout": 15
+        "Timeout": 15,
+        "ReservedConcurrentExecutions": 1
       },
       "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
@@ -555,6 +560,67 @@
         }
       }
     },
+    "kmsKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "Description": "An example symmetric encryption KMS key",
+        "EnableKeyRotation": true,
+        "PendingWindowInDays": 20,
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Id": "key-default-1",
+          "Statement": [
+            {
+              "Sid": "Enable IAM User Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam::",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":root"
+                    ]
+                  ]
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            },
+            {
+              "Sid": "Allow use of the key",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["cloudwatch.amazonaws.com", "logs.amazonaws.com"]
+              },
+              "Action": [
+                "kms:DescribeKey",
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey",
+                "kms:GenerateDataKeyWithoutPlaintext"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "apiLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 7,
+        "LogGroupName": "/tidbcloud/http-api",
+        "KmsKeyId": {
+          "Fn::GetAtt": ["kmsKey", "Arn"]
+        }
+      },
+      "DependsOn": ["kmsKey"]
+    },
     "DefaultStage": {
       "Type": "AWS::ApiGatewayV2::Stage",
       "DependsOn": [
@@ -563,7 +629,8 @@
         "PostBookRoute",
         "PostBookInitRoute",
         "PutBookRoute",
-        "DeleteBookRoute"
+        "DeleteBookRoute",
+        "apiLogGroup"
       ],
       "Properties": {
         "StageName": "$default",
@@ -574,6 +641,12 @@
         },
         "ApiId": {
           "Ref": "HttpApi"
+        },
+        "AccessLogSettings": {
+          "DestinationArn": {
+            "Fn::GetAtt": ["apiLogGroup", "Arn"]
+          },
+          "Format": "{\"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\",\"requestTime\":\"$context.requestTime\", \"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\"}"
         }
       },
       "Metadata": {
@@ -895,7 +968,6 @@
     "LambdaIAMRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
-        "RoleName": "TiDBCloudLambdaSMRole",
         "Description": "LambdaIAMRole requires SecretsManagerReadWrite and AWSLambdaBasicExecutionRole",
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",

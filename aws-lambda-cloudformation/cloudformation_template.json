@@ -52,13 +52,6 @@
       "MinLength": "1",
       "MaxLength": "32",
       "Default": "cloudformation-index.zip"
-    },
-    "TiDBServerlessAvailabilityZone": {
-      "Description": "TiDB Cloud Serverless Tier Availability Zone (AZ)",
-      "Type": "String",
-      "MinLength": "1",
-      "MaxLength": "64",
-      "Default": "us-east-1a"
     }
   },
   "Metadata": {
@@ -406,165 +399,12 @@
             ]
           ]
         },
-        "KmsKeyId":"alias/tidbcloud"
+        "KmsKeyId": "alias/aws/secretsmanager"
       },
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "9d32774a-05b0-472b-a7a7-6af35556faca"
         }
-      }
-    },
-    "BookstoreVPC": {
-      "Type": "AWS::EC2::VPC",
-      "Properties": {
-        "CidrBlock": "10.2.0.0/16",
-        "EnableDnsSupport": true,
-        "EnableDnsHostnames": true,
-        "InstanceTenancy": "default",
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "bookstore-vpc"
-          }
-        ]
-      }
-    },
-    "BookstoreSubnet": {
-      "Type": "AWS::EC2::Subnet",
-      "DependsOn": ["BookstoreVPC"],
-      "Properties": {
-        "VpcId": { "Ref": "BookstoreVPC" },
-        "CidrBlock": "10.2.0.0/18",
-        "AvailabilityZone": { "Ref": "TiDBServerlessAvailabilityZone" },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "bookstore-subnet"
-          }
-        ]
-      }
-    },
-    "BookstorePublicRouteTable": {
-      "Type": "AWS::EC2::RouteTable",
-      "Properties": {
-        "VpcId": {
-          "Ref": "BookstoreVPC"
-        },
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "bookstore-public-route-table"
-          }
-        ]
-      }
-    },
-    "BookstorePublicRoute": {
-      "Type": "AWS::EC2::Route",
-      "DependsOn": ["BookstoreAttachGateway", "BookstorePublicRouteTable"],
-      "Properties": {
-        "DestinationCidrBlock": "0.0.0.0/0",
-        "RouteTableId": {
-          "Ref": "BookstorePublicRouteTable"
-        },
-        "GatewayId": {
-          "Ref": "BookstoreInternetGateway"
-        }
-      }
-    },
-    "BookstoreSubnetRouteTableAssociation": {
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "BookstorePublicRouteTable"
-        },
-        "SubnetId": {
-          "Ref": "BookstoreSubnet"
-        }
-      }
-    },
-    "BookstoreSecurityGroup": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "SecurityGroup for Bookstore",
-        "VpcId": {
-          "Ref": "BookstoreVPC"
-        },
-        "SecurityGroupIngress": [
-          {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow All IP to SSH",
-            "FromPort": 0,
-            "IpProtocol": "tcp",
-            "ToPort": 65535
-          }
-        ],
-        "SecurityGroupEgress": [
-          {
-            "IpProtocol": "tcp",
-            "FromPort": 4000,
-            "ToPort": 4000,
-            "CidrIp": "0.0.0.0/0"
-          }
-        ],
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "bookstore-security-group"
-          }
-        ]
-      }
-    },
-    "BookstoreVPCRouteResolverEndpoint": {
-      "Type": "AWS::Route53Resolver::ResolverEndpoint",
-      "Properties": {
-        "Direction": "INBOUND",
-        "IpAddresses": [
-          {
-            "Ip": "10.2.1.254",
-            "SubnetId": { "Ref": "BookstoreSubnet" }
-          },
-          {
-            "Ip": "10.2.1.255",
-            "SubnetId": { "Ref": "BookstoreSubnet" }
-          }
-        ],
-        "Name": "bookstore-vpc-route-resolver-endpoint",
-        "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }]
-      }
-    },
-    "BookstoreVPCEndpoint": {
-      "Type": "AWS::EC2::VPCEndpoint",
-      "Properties": {
-        "PrivateDnsEnabled": true,
-        "ServiceName": "BookstoreVPCService",
-        "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
-        "SubnetIds": [{ "Ref": "BookstoreSubnet" }],
-        "VpcEndpointType": "Interface",
-        "VpcId": { "Ref": "BookstoreVPC" }
-      }
-    },
-    "BookstoreInternetGateway": {
-      "Type": "AWS::EC2::InternetGateway",
-      "DependsOn": ["BookstoreVPC", "BookstoreSubnet"],
-      "Properties": {
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "bookstore-internet-gateway"
-          }
-        ]
-      }
-    },
-    "BookstoreAttachGateway": {
-      "Type": "AWS::EC2::VPCGatewayAttachment",
-      "DependsOn": [
-        "BookstoreVPC",
-        "BookstoreSubnet",
-        "BookstoreInternetGateway"
-      ],
-      "Properties": {
-        "VpcId": { "Ref": "BookstoreVPC" },
-        "InternetGatewayId": { "Ref": "BookstoreInternetGateway" }
       }
     },
     "getBookFunction": {
@@ -585,20 +425,9 @@
           }
         },
         "Timeout": 15,
-        "VpcConfig": {
-          "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
-          "SubnetIds": [{ "Ref": "BookstoreSubnet" }]
-        },
         "ReservedConcurrentExecutions": 1
       },
-
-      "DependsOn": [
-        "SecretManager",
-        "LambdaIAMRole",
-        "BookstoreSecurityGroup",
-        "BookstoreSubnet",
-        "BookstoreVPCRouteResolverEndpoint"
-      ],
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "a2b2718b-90c4-4293-9f46-3369cc065de6"
@@ -623,19 +452,9 @@
           }
         },
         "Timeout": 15,
-        "VpcConfig": {
-          "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
-          "SubnetIds": [{ "Ref": "BookstoreSubnet" }]
-        },
         "ReservedConcurrentExecutions": 1
       },
-      "DependsOn": [
-        "SecretManager",
-        "LambdaIAMRole",
-        "BookstoreSecurityGroup",
-        "BookstoreSubnet",
-        "BookstoreVPCRouteResolverEndpoint"
-      ],
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "b7b38840-5c04-4cfc-96d7-713e9b4d8f5a"
@@ -660,19 +479,9 @@
           }
         },
         "Timeout": 15,
-        "VpcConfig": {
-          "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
-          "SubnetIds": [{ "Ref": "BookstoreSubnet" }]
-        },
         "ReservedConcurrentExecutions": 1
       },
-      "DependsOn": [
-        "SecretManager",
-        "LambdaIAMRole",
-        "BookstoreSecurityGroup",
-        "BookstoreSubnet",
-        "BookstoreVPCRouteResolverEndpoint"
-      ],
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "b96ff2a1-e286-4d4a-a422-d25d2c658892"
@@ -697,19 +506,9 @@
           }
         },
         "Timeout": 15,
-        "VpcConfig": {
-          "SecurityGroupIds": [{ "Ref": "BookstoreSecurityGroup" }],
-          "SubnetIds": [{ "Ref": "BookstoreSubnet" }]
-        },
         "ReservedConcurrentExecutions": 1
       },
-      "DependsOn": [
-        "SecretManager",
-        "LambdaIAMRole",
-        "BookstoreSecurityGroup",
-        "BookstoreSubnet",
-        "BookstoreVPCRouteResolverEndpoint"
-      ],
+      "DependsOn": ["SecretManager", "LambdaIAMRole"],
       "Metadata": {
         "AWS::CloudFormation::Designer": {
           "id": "d3a6c4ce-68f9-4f44-bb7e-eedd291d7534"
@@ -761,6 +560,67 @@
         }
       }
     },
+    "kmsKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "Description": "An example symmetric encryption KMS key",
+        "EnableKeyRotation": true,
+        "PendingWindowInDays": 20,
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Id": "key-default-1",
+          "Statement": [
+            {
+              "Sid": "Enable IAM User Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:iam::",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":root"
+                    ]
+                  ]
+                }
+              },
+              "Action": "kms:*",
+              "Resource": "*"
+            },
+            {
+              "Sid": "Allow use of the key",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": ["cloudwatch.amazonaws.com", "logs.amazonaws.com"]
+              },
+              "Action": [
+                "kms:DescribeKey",
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey",
+                "kms:GenerateDataKeyWithoutPlaintext"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      }
+    },
+    "apiLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 7,
+        "LogGroupName": "/tidbcloud/http-api",
+        "KmsKeyId": {
+          "Fn::GetAtt": ["kmsKey", "Arn"]
+        }
+      },
+      "DependsOn": ["kmsKey"]
+    },
     "DefaultStage": {
       "Type": "AWS::ApiGatewayV2::Stage",
       "DependsOn": [
@@ -769,7 +629,8 @@
         "PostBookRoute",
         "PostBookInitRoute",
         "PutBookRoute",
-        "DeleteBookRoute"
+        "DeleteBookRoute",
+        "apiLogGroup"
       ],
       "Properties": {
         "StageName": "$default",
@@ -782,7 +643,10 @@
           "Ref": "HttpApi"
         },
         "AccessLogSettings": {
-          "Format": "{\"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\",\"requestTime\":\"$context.requestTime\", \"eventType\":\"$context.eventType\",\"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\",\"connectionId\":\"$context.connectionId\"}"
+          "DestinationArn": {
+            "Fn::GetAtt": ["apiLogGroup", "Arn"]
+          },
+          "Format": "{\"requestId\":\"$context.requestId\", \"ip\": \"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\",\"requestTime\":\"$context.requestTime\", \"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\"}"
         }
       },
       "Metadata": {
@@ -1119,8 +983,7 @@
         },
         "ManagedPolicyArns": [
           "arn:aws:iam::aws:policy/SecretsManagerReadWrite",
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         ],
         "Path": "/"
       },

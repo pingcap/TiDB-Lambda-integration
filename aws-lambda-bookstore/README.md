@@ -4,7 +4,7 @@
 
 This doc demonstrates how you can employ TiDB Cloud in your serverless applications on [AWS Lambda](https://aws.amazon.com/lambda/) by constructing a bookstore management API. The API will enable end-users to perform actions such as listing, creating, updating, and deleting books.
 
-![AWS Lambda secure interaction with TiDB Cloud using API Gateway](https://user-images.githubusercontent.com/56986964/212818337-47dea61c-553d-4745-8118-84726d55a33d.png "image_tooltip")
+![AWS Lambda secure interaction with TiDB Cloud using API Gateway](https://user-images.githubusercontent.com/56986964/234158086-bad0d094-4ff6-4daf-b497-385824e50fd6.png "image_tooltip")
 
 _AWS Lambda secure interaction with TiDB Cloud using API Gateway_
 
